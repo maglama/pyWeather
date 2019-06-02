@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import urllib.request, json, sys, os
 from PyQt5.QtWidgets import QWidget, QPushButton, QApplication, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy, QScrollArea
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtGui
 
 class WeatherInfo(object):
     def __init__(self, location_id):
@@ -36,9 +36,6 @@ class WeatherInfo(object):
 
     def retDescription(self):
         return self.description
-    
-    def removeLineFeed(self, text):
-        pass
 
 class PyWeather(QWidget):
     # ウィンドウサイズが変更された時のイベントシグナル
@@ -85,9 +82,13 @@ class PyWeather(QWidget):
         self.loc = self.WeatherInfoObj.retLocation()
         self.description = self.WeatherInfoObj.retDescription()
         
-        # インターフェース：日付ロータリーボタン
+        # インターフェース：天気アイコンと日付ロータリーボタン
+        iconPath = 'icon/00_sunny.png'
         date_formatted = self.dateFormat(self.fc['date'].split('-')[1]) + "/" + self.dateFormat(self.fc['date'].split('-')[2])
-        self.date_btn = QPushButton(date_formatted, self)
+
+        self.date_btn = QPushButton(date_formatted)
+        self.date_btn.setIcon(QtGui.QIcon(iconPath))
+        self.date_btn.setIconSize(QtCore.QSize(32,32))
         self.date_btn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         self.date_btn.clicked.connect(self.button_clicked)
         
