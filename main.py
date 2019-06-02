@@ -68,8 +68,7 @@ class PyWeather(QWidget):
         self.description = self.WeatherInfoObj.retDescription().replace('。', '。</p><p>')
         
         # インターフェース：日付ロータリーボタン
-        date_formatted = self.fc['date'].split('-')[1] + '/' + self.fc['date'].split('-')[2]
-        date_formatted = date_formatted[1:] if date_formatted[0] == "0" else date_formatted
+        date_formatted = self.dateFormat(self.fc['date'].split('-')[1]) + "/" + self.dateFormat(self.fc['date'].split('-')[2])
         self.date_btn = QPushButton(date_formatted, self)
         self.date_btn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         self.date_btn.clicked.connect(self.button_clicked)
@@ -112,8 +111,7 @@ class PyWeather(QWidget):
             self.fc = self.WeatherInfoObj.retForecasts(self.day)
             
         # 日付ボタンの更新
-        date_formatted = self.fc['date'].split('-')[1] + '/' + self.fc['date'].split('-')[2]
-        date_formatted = date_formatted[1:] if date_formatted[0] == "0" else date_formatted
+        date_formatted = self.dateFormat(self.fc['date'].split('-')[1]) + '/' + self.dateFormat(self.fc['date'].split('-')[2])
         self.date_btn.setText(date_formatted)
 
         # お天気情報の更新
@@ -128,6 +126,10 @@ class PyWeather(QWidget):
         self.resized.emit()
         self.label_widget.resize(int(self.width()*2/3), self.height())
         return super(PyWeather, self).resizeEvent(event)
+
+    def dateFormat(self, input):
+        ''' 日付文字列の整形用関数（取得した月日が１桁の数値の場合、１桁目のゼロを消す） '''
+        return input[1:] if input[0] == '0' else input
 
 if __name__:
     app = QApplication(sys.argv)
