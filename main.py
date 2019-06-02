@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-import urllib.request, json, sys
+import urllib.request, json, sys, os
 from PyQt5.QtWidgets import QWidget, QPushButton, QApplication, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy, QScrollArea
 from PyQt5 import QtCore
 
@@ -24,7 +24,7 @@ class WeatherInfo(object):
         self.title = info['title']
         self.link = info['link']
         self.publicTime = info['publicTime']
-        self.description = info['description']['text']
+        self.description = info['description']['text'].replace(' ', '').replace('\r\n', '').replace('\n', '')
         self.forecasts = info['forecasts']
         self.copyright = info['copyright']
     
@@ -36,6 +36,9 @@ class WeatherInfo(object):
 
     def retDescription(self):
         return self.description
+    
+    def removeLineFeed(self, text):
+        pass
 
 class PyWeather(QWidget):
     # ウィンドウサイズが変更された時のイベントシグナル
@@ -43,16 +46,31 @@ class PyWeather(QWidget):
 
     def __init__(self):
         super(QWidget, self).__init__()
-        self.init_ui()
+        self.initUI()
         self.show()
         
-    def init_ui(self):
+    def initUI(self):
         self.setGeometry(400, 400, 500, 150)
         self.setWindowTitle('Pythonお天気 3代目')
+
+        # スタイルシートの読み込み
+        try:
+            styleFile = os.path.join(
+                os.path.dirname(__file__), 'style.css'
+            )
+            with open(styleFile, 'r') as f:
+                style = f.read()
+        except:
+            print('スタイルシートが設定されていません（標準デザインで表示します）。')
+            style = ''
+        self.setStyleSheet(style)
         
         # APIに投げる地域別のID番号を.confから取得
         try:
-            conf = open('location.conf', 'r')
+            confFile = os.path.join(
+                os.path.dirname(__file__), 'location.conf'
+            )
+            conf = open(confFile, 'r')
             location_id = int(conf.readline())
         except:
             conf = open('location.conf', 'w')
@@ -65,7 +83,7 @@ class PyWeather(QWidget):
         self.day = 0
         self.fc = self.WeatherInfoObj.retForecasts(self.day)
         self.loc = self.WeatherInfoObj.retLocation()
-        self.description = self.WeatherInfoObj.retDescription().replace('。', '。</p><p>')
+        self.description = self.WeatherInfoObj.retDescription()
         
         # インターフェース：日付ロータリーボタン
         date_formatted = self.dateFormat(self.fc['date'].split('-')[1]) + "/" + self.dateFormat(self.fc['date'].split('-')[2])
