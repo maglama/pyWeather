@@ -83,7 +83,7 @@ class PyWeather(QWidget):
         self.description = self.WeatherInfoObj.retDescription()
         
         # インターフェース：天気アイコンと日付ロータリーボタン
-        iconPath = 'icon/00_sunny.png'
+        iconPath = self.setIcon(self.fc['telop'])
         date_formatted = self.dateFormat(self.fc['date'].split('-')[1]) + "/" + self.dateFormat(self.fc['date'].split('-')[2])
 
         self.date_btn = QPushButton(date_formatted)
@@ -130,8 +130,10 @@ class PyWeather(QWidget):
             self.fc = self.WeatherInfoObj.retForecasts(self.day)
             
         # 日付ボタンの更新
+        iconPath = self.setIcon(self.fc['telop'])
         date_formatted = self.dateFormat(self.fc['date'].split('-')[1]) + '/' + self.dateFormat(self.fc['date'].split('-')[2])
         self.date_btn.setText(date_formatted)
+        self.date_btn.setIcon(QtGui.QIcon(iconPath))
 
         # お天気情報の更新
         self.weather_str = (
@@ -149,6 +151,33 @@ class PyWeather(QWidget):
     def dateFormat(self, input):
         ''' 日付文字列の整形用関数（取得した月日が１桁の数値の場合、１桁目のゼロを消す） '''
         return input[1:] if input[0] == '0' else input
+    
+    def setIcon(self, weather):
+        ''' 天気テロップの文字列情報から適切な天気アイコンのpathを返す '''
+        weatherCode = 0
+        for char in weather:
+            weatherCode += 1 if char == '晴' else 0
+            weatherCode += 2 if char == '曇' else 0
+            weatherCode += 4 if char == '雨' else 0
+            weatherCode += 8 if char == '雷' else 0
+            weatherCode += 16 if char == '雪' else 0
+        
+        if weatherCode == 1:
+            iconPath = '00_sunny.png'
+        if weatherCode == 2:
+            iconPath = '01_cloudy.png'
+        if weatherCode == 3:
+            iconPath = '02_partlyCloudy.png'
+        if weatherCode >= 4 and weatherCode < 8:
+            iconPath = '03_rainy.png'
+        if weatherCode >= 8 and weatherCode < 16:
+            iconPath = '04_thunder.png'
+        if weatherCode >= 16 and weatherCode < 32:
+            iconPath = '05_snow.png'
+        if weatherCode < 1 or weatherCode >= 32:
+            iconPath = '99_noMatch.png'
+
+        return os.path.join(os.path.dirname(__file__), 'icon/', iconPath)
 
 if __name__:
     app = QApplication(sys.argv)
