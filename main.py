@@ -153,7 +153,7 @@ class PyWeather(QWidget):
         return input[1:] if input[0] == '0' else input
     
     def setIcon(self, weather):
-        ''' 天気テロップの文字列情報から適切な天気アイコンのpathを返す '''
+        ''' 天気テロップの文字列情報から適当な天気アイコンのpathを返す '''
         weatherCode = 0
         for char in weather:
             weatherCode += 1 if char == '晴' else 0
