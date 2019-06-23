@@ -6,3 +6,20 @@ QPushButton{
     font-family: Verdana, sans-serif;
     font-size: 24px;
 }
+
+QMenuBar {
+    background-color: #cccccc;
+}
+
+QMenuBar::item {
+    background-color: transparent;
+    margin-left: 0;
+}
+
+QMenuBar::item:selected {
+    background-color: #a8a8a8;
+}
+
+QMenuBar::item:pressed {
+    background-color: #888888;
+}

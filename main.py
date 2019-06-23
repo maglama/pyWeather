@@ -49,6 +49,21 @@ class PyWeather(QMainWindow):
         self.setGeometry(400, 400, 500, 150)
         self.setWindowTitle('Pythonお天気 3代目')
 
+        # メニューバーアクションの定義
+        exitAction = QAction('終了', self)
+        exitAction.setShortcut('Ctrl+Q')
+        exitAction.setStatusTip('Pythonお天気を終了する')
+        exitAction.triggered.connect(self.close)
+
+        # メニューバーの定義とアクションの追加
+        menubar = self.menuBar()
+
+        # Mac OSのシステムメニューバー上にメニューを表示させない
+        menubar.setNativeMenuBar(False)
+        
+        fileMenu = menubar.addMenu('ファイル')
+        fileMenu.addAction(exitAction)
+
         # スタイルシートの読み込み
         try:
             styleFile = os.path.join(
@@ -119,7 +134,7 @@ class PyWeather(QMainWindow):
         centralWidget.setLayout(layout)
 
         self.setCentralWidget(centralWidget)
-        
+
     def resizeEvent(self, event):
         ''' ウィンドウサイズが変更された時のスロット '''
         self.resized.emit()
