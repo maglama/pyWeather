@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 import urllib.request, json, sys, os
-from PyQt5.QtWidgets import QWidget, QPushButton, QApplication, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy, QScrollArea
+from PyQt5.QtWidgets import QMainWindow, QWidget, QPushButton, QApplication, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy, QScrollArea, QAction, qApp
 from PyQt5 import QtCore, QtGui
 
 class WeatherInfo(object):
@@ -37,14 +37,13 @@ class WeatherInfo(object):
     def retDescription(self):
         return self.description
 
-class PyWeather(QWidget):
+class PyWeather(QMainWindow):
     # ウィンドウサイズが変更された時のイベントシグナル
     resized = QtCore.pyqtSignal()
 
     def __init__(self):
-        super(QWidget, self).__init__()
+        super().__init__()
         self.initUI()
-        self.show()
         
     def initUI(self):
         self.setGeometry(400, 400, 500, 150)
@@ -81,8 +80,8 @@ class PyWeather(QWidget):
         self.fc = self.WeatherInfoObj.retForecasts(self.day)
         self.loc = self.WeatherInfoObj.retLocation()
         self.description = self.WeatherInfoObj.retDescription()
-        
-        # インターフェース：天気アイコンと日付ロータリーボタン
+
+        # 天気アイコンと日付ロータリーボタン
         iconPath = self.setIcon(self.fc['telop'])
         date_formatted = self.dateFormat(self.fc['date'].split('-')[1]) + "/" + self.dateFormat(self.fc['date'].split('-')[2])
 
@@ -92,12 +91,12 @@ class PyWeather(QWidget):
         self.date_btn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         self.date_btn.clicked.connect(self.button_clicked)
         
-        # インターフェース：お天気情報
+        # お天気情報
         self.weather_str = (
             '<h1>' + self.fc['telop'] + '＠' + self.loc['city'] + '</h1>' +
             '<p>' + self.description + '</p>'
         )
-        
+
         # QLabelにお天気情報の文字列をはっつける
         self.label_widget = QLabel(self.weather_str, self)
         self.label_widget.resize(335, self.height())
@@ -113,10 +112,20 @@ class PyWeather(QWidget):
         
         # インターフェース：全体
         layout = QHBoxLayout()
+        centralWidget = QWidget()
+
         layout.addWidget(self.date_btn, 1)
         layout.addLayout(rbox, 3)
-        self.setLayout(layout)
+        centralWidget.setLayout(layout)
+
+        self.setCentralWidget(centralWidget)
         
+    def resizeEvent(self, event):
+        ''' ウィンドウサイズが変更された時のスロット '''
+        self.resized.emit()
+        self.label_widget.resize(int(self.width()*2/3), self.height())
+        return super(PyWeather, self).resizeEvent(event)
+            
     def button_clicked(self):
         ''' 日付ボタンが押されたときの動作 '''
         # 0, 1, 2と値をロータリーする
@@ -142,16 +151,10 @@ class PyWeather(QWidget):
         )
         self.label_widget.setText(self.weather_str)
 
-    def resizeEvent(self, event):
-        ''' ウィンドウサイズが変更された時のスロット '''
-        self.resized.emit()
-        self.label_widget.resize(int(self.width()*2/3), self.height())
-        return super(PyWeather, self).resizeEvent(event)
-
     def dateFormat(self, input):
         ''' 日付文字列の整形用関数（取得した月日が１桁の数値の場合、１桁目のゼロを消す） '''
         return input[1:] if input[0] == '0' else input
-    
+
     def setIcon(self, weather):
         ''' 天気テロップの文字列情報から適当な天気アイコンのpathを返す '''
         weatherCode = 0
@@ -182,4 +185,5 @@ class PyWeather(QWidget):
 if __name__:
     app = QApplication(sys.argv)
     window = PyWeather()
+    window.show()
     sys.exit(app.exec_())
