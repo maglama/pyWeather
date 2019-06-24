@@ -13,7 +13,7 @@ QMenuBar {
 
 QMenuBar::item {
     background-color: transparent;
-    margin-left: 0;
+    margin: 0 2px 0 0;
 }
 
 QMenuBar::item:selected {
