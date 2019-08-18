@@ -70,58 +70,19 @@ class PyWeather(QMainWindow):
                 os.path.dirname(__file__), 'location.conf'
             )
             conf = open(confFile, 'r')
-            location_id = int(conf.readline())
+            location_id = conf.readline()
+
+            # location_id が空欄の場合は Exception を発生させる
+            if location_id == '':
+                raise Exception
+
         except:
-            conf = open('location.conf', 'w')
-            location_id = 120010
-            conf.write(str(location_id))
+            conf = open(confFile, 'w')
+            location_id = '120010'
+            conf.write(location_id)
         conf.close()
         
-        # お天気情報オブジェクト
-        self.WeatherInfoObj = WeatherInfo(location_id)
-        self.day = 0
-        self.fc = self.WeatherInfoObj.retForecasts(self.day)
-        self.loc = self.WeatherInfoObj.retLocation()
-        self.description = self.WeatherInfoObj.retDescription()
-
-        # 天気アイコンと日付ロータリーボタン
-        iconPath = self.setIcon(self.fc['telop'])
-        date_formatted = self.dateFormat(self.fc['date'].split('-')[1]) + "/" + self.dateFormat(self.fc['date'].split('-')[2])
-
-        self.date_btn = QPushButton(date_formatted)
-        self.date_btn.setIcon(QtGui.QIcon(iconPath))
-        self.date_btn.setIconSize(QtCore.QSize(32,32))
-        self.date_btn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
-        self.date_btn.clicked.connect(self.button_clicked)
-        
-        # お天気情報
-        self.weather_str = (
-            '<h1>' + self.fc['telop'] + '＠' + self.loc['city'] + '</h1>' +
-            '<p>' + self.description + '</p>'
-        )
-
-        # QLabelにお天気情報の文字列をはっつける
-        self.label_widget = QLabel(self.weather_str, self)
-        self.label_widget.resize(335, self.height())
-        self.label_widget.setWordWrap(True)
-        
-        # QLabelをQScrollAreaにはっつける
-        self.label = QScrollArea(self)
-        self.label.setWidget(self.label_widget)
-
-        # インターフェース：右画面お天気情報
-        rbox = QVBoxLayout()
-        rbox.addWidget(self.label)
-        
-        # インターフェース：全体
-        layout = QHBoxLayout()
-        centralWidget = QWidget()
-
-        layout.addWidget(self.date_btn, 1)
-        layout.addLayout(rbox, 3)
-        centralWidget.setLayout(layout)
-
-        self.setCentralWidget(centralWidget)
+        self.setWeatherInfoObj(location_id)
     
     def setMenuBar(self):
         ''' メニューバーを定義する '''
@@ -134,6 +95,34 @@ class PyWeather(QMainWindow):
         changeStyle.setShortcut('Ctrl+C')
         changeStyle.triggered.connect(self.setStyle)
 
+        # 天気表示地点の変更
+        change2SPR = QAction('札幌', self)
+        change2SND = QAction('仙台', self)
+        change2CHB = QAction('千葉', self)
+        change2TKO = QAction('東京', self)
+        change2NGY = QAction('名古屋', self)
+        change2KNZ = QAction('金沢', self)
+        change2OSK = QAction('大阪', self)
+        change2TAK = QAction('高松', self)
+        change2FUK = QAction('福岡', self)
+        change2SAG = QAction('佐賀', self)
+        change2KAG = QAction('鹿児島', self)
+        change2OKI = QAction('沖縄', self)
+        # http://drilldripper.hatenablog.com/entry/2016/08/06/175641
+        # 引数付きの関数を connect に渡すために lambda を使用
+        change2SPR.triggered.connect(lambda: self.setPlace('016010'))
+        change2SND.triggered.connect(lambda: self.setPlace('040010'))
+        change2CHB.triggered.connect(lambda: self.setPlace('120010'))
+        change2TKO.triggered.connect(lambda: self.setPlace('130010'))
+        change2NGY.triggered.connect(lambda: self.setPlace('230010'))
+        change2KNZ.triggered.connect(lambda: self.setPlace('170010'))
+        change2OSK.triggered.connect(lambda: self.setPlace('270000'))
+        change2TAK.triggered.connect(lambda: self.setPlace('370000'))
+        change2FUK.triggered.connect(lambda: self.setPlace('400010'))
+        change2SAG.triggered.connect(lambda: self.setPlace('410010'))
+        change2KAG.triggered.connect(lambda: self.setPlace('460010'))
+        change2OKI.triggered.connect(lambda: self.setPlace('471010'))
+
         # メニューバーの定義とアクションの追加
         menubar = self.menuBar()
 
@@ -143,9 +132,35 @@ class PyWeather(QMainWindow):
         fileMenu = menubar.addMenu('メニュー')
         fileMenu.addAction(changeStyle)
         fileMenu.addAction(exitAction)
+
+        fileMenu = menubar.addMenu('地点を変更')
+        fileMenu.addAction(change2SPR)
+        fileMenu.addAction(change2SND)
+        fileMenu.addAction(change2CHB)
+        fileMenu.addAction(change2TKO)
+        fileMenu.addAction(change2NGY)
+        fileMenu.addAction(change2KNZ)
+        fileMenu.addAction(change2OSK)
+        fileMenu.addAction(change2TAK)
+        fileMenu.addAction(change2FUK)
+        fileMenu.addAction(change2SAG)
+        fileMenu.addAction(change2KAG)
+        fileMenu.addAction(change2OKI)
     
     def setStyle(self):
+        ''' ライト/ダークモードの表示スタイルを変更するメソッド（作成中） '''
         print('style changed.')
+    
+    def setPlace(self, location_id):
+        ''' 天気表示地点を変更し、location.conf に保存するメソッド '''
+        confFile = os.path.join(
+            os.path.dirname(__file__), 'location.conf'
+        )
+        conf = open(confFile, 'w')
+        conf.write(location_id)
+        conf.close()
+
+        self.setWeatherInfoObj(location_id)
 
     def resizeEvent(self, event):
         ''' ウィンドウサイズが変更された時のスロット '''
@@ -208,6 +223,60 @@ class PyWeather(QMainWindow):
             iconPath = '99_noMatch.png'
 
         return os.path.join(os.path.dirname(__file__), 'icon/', iconPath)
+    
+    def setWeatherInfoObj(self, location_id):
+        ''' お天気情報オブジェクトを取得・設定するメソッド '''
+        # location_id が正しくない場合など、お天気情報が正しく取得できない場合の例外処理
+        try:
+            self.WeatherInfoObj = WeatherInfo(location_id)
+        except:
+            print('location.conf が破損しているか、インターネットに接続されていません。')
+            print('location.conf を削除して再度実行してください。また、インターネットへの接続を確認してください。')
+            exit()
+
+        self.day = 0
+        self.fc = self.WeatherInfoObj.retForecasts(self.day)
+        self.loc = self.WeatherInfoObj.retLocation()
+        self.description = self.WeatherInfoObj.retDescription()
+
+        # 天気アイコンと日付ロータリーボタン
+        iconPath = self.setIcon(self.fc['telop'])
+        date_formatted = self.dateFormat(self.fc['date'].split('-')[1]) + "/" + self.dateFormat(self.fc['date'].split('-')[2])
+
+        self.date_btn = QPushButton(date_formatted)
+        self.date_btn.setIcon(QtGui.QIcon(iconPath))
+        self.date_btn.setIconSize(QtCore.QSize(32,32))
+        self.date_btn.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.date_btn.clicked.connect(self.button_clicked)
+        
+        # お天気情報
+        self.weather_str = (
+            '<h1>' + self.fc['telop'] + '＠' + self.loc['city'] + '</h1>' +
+            '<p>' + self.description + '</p>'
+        )
+
+        # QLabelにお天気情報の文字列をはっつける
+        self.label_widget = QLabel(self.weather_str, self)
+        self.label_widget.resize(335, self.height())
+        self.label_widget.setWordWrap(True)
+        
+        # QLabelをQScrollAreaにはっつける
+        self.label = QScrollArea(self)
+        self.label.setWidget(self.label_widget)
+
+        # インターフェース：右画面お天気情報
+        rbox = QVBoxLayout()
+        rbox.addWidget(self.label)
+        
+        # インターフェース：全体
+        layout = QHBoxLayout()
+        centralWidget = QWidget()
+
+        layout.addWidget(self.date_btn, 1)
+        layout.addLayout(rbox, 3)
+        centralWidget.setLayout(layout)
+
+        self.setCentralWidget(centralWidget)
 
 if __name__:
     app = QApplication(sys.argv)
